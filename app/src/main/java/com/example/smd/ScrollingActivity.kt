@@ -6,27 +6,38 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.View
+import android.widget.SearchView
+import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_scrolling.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.sql.Time
+import java.util.*
 import kotlin.collections.ArrayList
 
 
 class ScrollingActivity : AppCompatActivity() {
 
-    private var isFavourite = false
+
     private lateinit var recyclerView: androidx.recyclerview.widget.RecyclerView
     private lateinit var viewAdapter: androidx.recyclerview.widget.RecyclerView.Adapter<*>
     private lateinit var viewManager: androidx.recyclerview.widget.RecyclerView.LayoutManager
-    private val listOfCompany = ArrayList<String>()
+    private var listOfCompany = ArrayList<String>()
     private val listOfCompanyProfile = ArrayList<CompanyProfile>()
 
     private val token = "c0v61kf48v6pr2p76380"
+
+    companion object {
+        private var isFavourite = false
+        fun getIsFavourite(): Boolean {
+            return isFavourite
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +50,88 @@ class ScrollingActivity : AppCompatActivity() {
         }
 
 
+        favorite.setOnClickListener {
+            favoriteLayout.visibility = View.GONE
+            stocksLayout.visibility = View.VISIBLE
+            isFavourite = true
+        }
+
+        stocks.setOnClickListener {
+            stocksLayout.visibility = View.GONE
+            favoriteLayout.visibility = View.VISIBLE
+            isFavourite = false
+        }
+
+        /* GlobalScope.launch {
+            getListOfCompany()
+            Log.e("asdsad", listOfCompany.toString())
+            for (comp in listOfCompany) {
+                Log.e("asdsad", comp)
+            }
+        } */
+
+        fillProfileArray()
+
+        Timer().schedule(object : TimerTask(){
+            override fun run() {
+                runOnUiThread {
+                    setRecyclerView()
+                    searchInit()
+                    favorite.setOnClickListener {
+                        favoriteLayout.visibility = View.GONE
+                        stocksLayout.visibility = View.VISIBLE
+                        isFavourite = true
+                        (viewAdapter as StocksRecyclerViewAdapter).filter(searchView.query.toString(), isFavourite)
+
+                    }
+
+                    stocks.setOnClickListener {
+                        stocksLayout.visibility = View.GONE
+                        favoriteLayout.visibility = View.VISIBLE
+                        isFavourite = false
+                        (viewAdapter as StocksRecyclerViewAdapter).filter(searchView.query.toString(), isFavourite)
+                    }
+                }
+            }
+        }, 10000)
+
+
+    }
+
+
+    private suspend fun getListOfCompany() =
+        withContext(Dispatchers.IO) {
+            val baseUrl = "https://finnhub.io/api/v1/index/"
+            val retrofit = Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+
+            val service = retrofit.create(CompanyService::class.java)
+
+            val call = service.getCompanyProfilesList("^DJI", token)
+            call.enqueue(object : Callback<CompanyResponse> {
+                override fun onResponse(
+                    call: Call<CompanyResponse>,
+                    response: Response<CompanyResponse>
+                ) {
+
+                    if (response.isSuccessful) {
+                        val companyResponse = response.body()!!
+                        listOfCompany = companyResponse.companyArr
+                        Log.e("ewww", listOfCompany.toString())
+                    }
+                }
+
+                override fun onFailure(call: Call<CompanyResponse>, t: Throwable) {
+                    Log.e("Trouble with connect", t.toString())
+                    TODO("Snackbar")
+                }
+            })
+
+        }
+
+    private fun fillProfileArray() {
         val baseUrl = "https://finnhub.io/api/v1/index/"
         val retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
@@ -85,14 +178,20 @@ class ScrollingActivity : AppCompatActivity() {
                                         .build()
 
 
-                                    val service3 = retrofit3.create(CompanyCandleService::class.java)
+                                    val service3 =
+                                        retrofit3.create(CompanyCandleService::class.java)
 
-                                    val curTime = System.currentTimeMillis()/1000
+                                    val curTime = System.currentTimeMillis() / 1000
 
-                                    Log.e("sdfssdsaas", curTime.toString())
+                                    // Log.e("sdfssdsaas", curTime.toString())
 
-                                    val called1 = service3.getCompanyCandleList(company, token, "D", (curTime - 60*60*24).toString(),
-                                        curTime.toString())
+                                    val called1 = service3.getCompanyCandleList(
+                                        company,
+                                        token,
+                                        "D",
+                                        (curTime - 60 * 60 * 24 * 2).toString(),
+                                        curTime.toString()
+                                    )
                                     called1.enqueue(object : Callback<CompanyCandleResponse> {
                                         override fun onResponse(
                                             call: Call<CompanyCandleResponse>,
@@ -102,10 +201,17 @@ class ScrollingActivity : AppCompatActivity() {
 
                                             if (response.isSuccessful) {
                                                 val response1 = response.body()!!
-                                                companyProfileResponse.marketCapitalize = response1.candleList[0]
-                                                companyProfileResponse.changeM = response1.candleList[1] - response1.candleList[0]
-                                                companyProfileResponse.changeP = companyProfileResponse.changeM / response1.candleList[0] * 100
-                                                Log.e("asdsad", companyProfileResponse.changeP.toString())
+                                                companyProfileResponse.price =
+                                                    response1.candleList[0]
+                                                companyProfileResponse.changeM =
+                                                    response1.candleList[1] - response1.candleList[0]
+                                                companyProfileResponse.changeP =
+                                                    companyProfileResponse.changeM / response1.candleList[0] * 100
+                                                 Log.e(
+                                                    "asdsad",
+                                                    companyProfileResponse.changeP.toString()
+                                                )
+                                                listOfCompanyProfile.add(companyProfileResponse)
                                             }
                                         }
 
@@ -138,27 +244,38 @@ class ScrollingActivity : AppCompatActivity() {
                 TODO("Snackbar")
             }
         })
+    }
 
+    private fun searchInit(){
+        searchView.queryHint = "Поиск"
 
-
-        favorite.setOnClickListener {
-            favoriteLayout.visibility = View.GONE
-            stocksLayout.visibility = View.VISIBLE
-            isFavourite = false
+        searchView.setOnClickListener {
+            Log.e("click", "1")
         }
 
-        stocks.setOnClickListener {
-            stocksLayout.visibility = View.GONE
-            favoriteLayout.visibility = View.VISIBLE
-            isFavourite = true
+        searchView.setOnSearchClickListener {
+            Log.e("click", "2")
         }
 
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener,
+            androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                (viewAdapter as StocksRecyclerViewAdapter).filter(query, isFavourite)
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean { //    adapter.getFilter().filter(newText);
+                (viewAdapter as StocksRecyclerViewAdapter).filter(newText, isFavourite)
+                return false
+            }
+        })
     }
 
     private fun setRecyclerView() {
-        /*viewManager = androidx.recyclerview.widget.LinearLayoutManager(this.applicationContext)
+        viewManager = androidx.recyclerview.widget.LinearLayoutManager(this.applicationContext)
 
-        viewAdapter = StocksRecyclerViewAdapter(a.toTypedArray())
+        viewAdapter = StocksRecyclerViewAdapter(listOfCompanyProfile, this.applicationContext)
 
         recyclerView =
             findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.recycler_view)
@@ -170,7 +287,7 @@ class ScrollingActivity : AppCompatActivity() {
 
                     adapter = viewAdapter
 
-                } */
+                }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

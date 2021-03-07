@@ -5,8 +5,7 @@ import com.google.gson.annotations.SerializedName
 class CompanyProfile {
     @SerializedName("currency")
     var currency = ""
-    @SerializedName("marketCapitalization")
-    var marketCapitalize = 0.0
+    var price = 0.0
     @SerializedName("name")
     var name = ""
     @SerializedName("ticker")
@@ -15,4 +14,5 @@ class CompanyProfile {
     var logo = ""
     var changeM = 0.0
     var changeP = 0.0
+    var isFavourite = false
 }
