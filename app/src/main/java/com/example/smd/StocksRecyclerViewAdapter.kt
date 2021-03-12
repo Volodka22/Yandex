@@ -13,13 +13,12 @@ import kotlin.collections.ArrayList
 import kotlin.math.round
 
 class StocksRecyclerViewAdapter(
-    stocks: ArrayList<CompanyProfile>,
     context: Context
 ) :
     androidx.recyclerview.widget.RecyclerView.Adapter<StocksRecyclerViewAdapter.MyViewHolder>() {
 
-    private var curStocks = stocks
-    private val allStocks = ArrayList(stocks)
+    private var curStocks = ArrayList<CompanyProfile>()
+    private val allStocks = ArrayList<CompanyProfile>()
     private val sup = context
 
     inner class MyViewHolder internal constructor(view: View) :
@@ -103,29 +102,33 @@ class StocksRecyclerViewAdapter(
             .contains(b.toLowerCase(Locale.getDefault()))
     }
 
+    private fun checkProfile(isFavourite: Boolean, text: String, it: CompanyProfile): Boolean {
+        var ans = checkOnFavourite(isFavourite, it)
+        if (text.isNotEmpty()) {
+            ans = ans && (checkIntro(it.name, text) || checkIntro(it.ticker, text))
+        }
+        return ans
+    }
+
+    fun add(comp: CompanyProfile, isFavourite: Boolean, text: String) {
+        allStocks.add(comp)
+        if (checkProfile(isFavourite, text, comp)) {
+            curStocks.add(comp)
+        }
+        notifyDataSetChanged()
+    }
+
     fun filter(text: String, isFavourite: Boolean) {
         curStocks.clear()
-        if (text.isEmpty()) {
-            allStocks.forEach {
-                if (checkOnFavourite(isFavourite, it)) {
-                    curStocks.add(it)
-                }
-            }
-        } else {
-            allStocks.forEach {
-                if ((checkIntro(it.name, text) || checkIntro(
-                        it.ticker,
-                        text
-                    )) && (((!isFavourite) || it.isFavourite))
-                ) {
-                    curStocks.add(it)
-                }
+
+        allStocks.forEach {
+            if (checkProfile(isFavourite, text, it)) {
+                curStocks.add(it)
             }
         }
         notifyDataSetChanged()
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
     override fun getItemCount() = curStocks.size
 
 

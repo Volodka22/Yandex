@@ -2,8 +2,7 @@ package com.example.smd
 
 import com.google.gson.annotations.SerializedName
 
-class CompanyCandleResponse {
+data class CompanyCandleResponse (
     @SerializedName("o")
-    var candleList = ArrayList<Double>()
-
-}
+    var candleList: ArrayList<Double> = ArrayList()
+)

@@ -2,7 +2,7 @@ package com.example.smd
 
 import com.google.gson.annotations.SerializedName
 
-class CompanyResponse {
+data class CompanyResponse(
     @SerializedName("constituents")
-    var companyArr = ArrayList<String>()
-}
+    var companyArr: ArrayList<String> =  ArrayList()
+)
