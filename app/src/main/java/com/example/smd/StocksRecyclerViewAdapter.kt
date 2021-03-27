@@ -2,12 +2,16 @@ package com.example.smd
 
 import android.content.Context
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import com.squareup.picasso.Picasso
+import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.round
@@ -17,6 +21,7 @@ class StocksRecyclerViewAdapter(
 ) :
     androidx.recyclerview.widget.RecyclerView.Adapter<StocksRecyclerViewAdapter.MyViewHolder>() {
 
+    private val favourites = ArrayList<String>()
     private var curStocks = ArrayList<CompanyProfile>()
     private val allStocks = ArrayList<CompanyProfile>()
     private val sup = context
@@ -56,7 +61,6 @@ class StocksRecyclerViewAdapter(
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-
         val stock = curStocks[position]
         holder.nameView.text = stock.name
         holder.tickerView.text = stock.ticker
@@ -73,12 +77,20 @@ class StocksRecyclerViewAdapter(
         holder.chgView.text = chg
 
         if (stock.logo.isNotEmpty()) {
+            holder.logoView.visibility = View.VISIBLE
             Picasso.get().load(stock.logo).into(holder.logoView)
+        } else {
+            holder.logoView.visibility = View.INVISIBLE
         }
         setStar(holder, position)
         holder.isFavorite.setOnClickListener {
             val pos = allStocks.indexOf(curStocks[position])
             allStocks[pos].isFavourite = !allStocks[pos].isFavourite
+            if (allStocks[pos].isFavourite) {
+                favourites.add(allStocks[pos].ticker)
+            } else {
+                favourites.remove(allStocks[pos].ticker)
+            }
             curStocks[position] = allStocks[pos]
             setStar(holder, position)
             if (ScrollingActivity.getIsFavourite() && !allStocks[pos].isFavourite) {
@@ -115,6 +127,9 @@ class StocksRecyclerViewAdapter(
         if (checkProfile(isFavourite, text, comp)) {
             curStocks.add(comp)
         }
+        if (comp.isFavourite) {
+            favourites.add(comp.ticker)
+        }
         notifyDataSetChanged()
     }
 
@@ -127,6 +142,16 @@ class StocksRecyclerViewAdapter(
             }
         }
         notifyDataSetChanged()
+    }
+
+    fun writeFavourites() {
+        var fileContent = ""
+        for (comp in favourites) {
+            fileContent += comp + "\n"
+        }
+        Log.e("Bye", fileContent)
+        val file = File(sup.filesDir, sup.resources.getString(R.string.file_with_favourites))
+        file.writeText(fileContent)
     }
 
     override fun getItemCount() = curStocks.size

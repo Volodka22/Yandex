@@ -94,4 +94,7 @@
     <string name="app_label">Find company or ticker</string>
     <string name="stocks">Stocks</string>
     <string name="favorite">Favourite</string>
+    <string name="token">c15osb748v6rh9qkjsqg</string>
+    <string name="file_with_favourites">Favorite.txt</string>
+    <string name="we_don_t_have_this_logo">We don`t have this logo</string>
 </resources>

@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:id="@+id/contextView"
     tools:context=".ScrollingActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -109,5 +110,14 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <include layout="@layout/content_scrolling" />
+
+    <ImageView
+        android:id="@+id/zhdun"
+        android:visibility="gone"
+        android:background="@color/colorPrimary"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/png_transparent_homunculus_loxodontus_sticker_royal_palace_of_madrid__naklejka_ru_____white_mammal_carnivoran"
+        tools:ignore="ContentDescription" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
