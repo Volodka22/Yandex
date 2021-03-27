@@ -124,8 +124,10 @@ class ScrollingActivity : AppCompatActivity() {
 
     private suspend fun wait() {
         zhdun.visibility = View.VISIBLE
+        app_bar.visibility = View.GONE
         delay(1000 * 60)
         zhdun.visibility = View.GONE
+        app_bar.visibility = View.VISIBLE
     }
 
     private suspend fun getCompanyProfile(listOfCompany: ArrayList<String>): ArrayList<CompanyProfile> {
@@ -157,16 +159,16 @@ class ScrollingActivity : AppCompatActivity() {
     }
 
     private fun wifiError() {
-        val snackbar = Snackbar.make(
+        val snackBar = Snackbar.make(
             act,
             contextView,
             "Trouble with internet connection",
             Snackbar.LENGTH_INDEFINITE
         )
-        snackbar.setAction("Restart") {
+        snackBar.setAction("Restart") {
             act.recreate()
         }
-        snackbar.show()
+        snackBar.show()
     }
 
     private suspend fun addCandles() {
