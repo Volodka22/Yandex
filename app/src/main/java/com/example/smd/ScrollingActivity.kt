@@ -10,10 +10,12 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_scrolling.*
 import kotlinx.coroutines.*
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.net.UnknownHostException
+import java.util.concurrent.TimeUnit
 
 
 class ScrollingActivity : AppCompatActivity() {
@@ -25,7 +27,12 @@ class ScrollingActivity : AppCompatActivity() {
     private val favourites = kotlin.collections.HashMap<String, Boolean>()
     private var allRead = false
     private var cor: Job? = null
-    private var act = this
+
+    private val okHttpClient = OkHttpClient().newBuilder()
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .build()
 
     companion object {
         private var isFavourite = false
@@ -50,6 +57,7 @@ class ScrollingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scrolling)
         setSupportActionBar(toolbar)
+
         zhdun.visibility = View.GONE
         supportActionBar!!.title = null
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
@@ -114,6 +122,7 @@ class ScrollingActivity : AppCompatActivity() {
         val baseUrl = "https://finnhub.io/api/v1/index/"
         val retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
@@ -125,9 +134,11 @@ class ScrollingActivity : AppCompatActivity() {
     private suspend fun wait() {
         zhdun.visibility = View.VISIBLE
         app_bar.visibility = View.GONE
+        recyclerView.visibility = View.GONE
         delay(1000 * 60)
         zhdun.visibility = View.GONE
         app_bar.visibility = View.VISIBLE
+        recyclerView.visibility = View.VISIBLE
     }
 
     private suspend fun getCompanyProfile(listOfCompany: ArrayList<String>): ArrayList<CompanyProfile> {
@@ -135,6 +146,7 @@ class ScrollingActivity : AppCompatActivity() {
         val baseUrl = "https://finnhub.io/api/v1/stock/"
         val retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         val service = retrofit.create(CompanyProfileService::class.java)
@@ -160,13 +172,13 @@ class ScrollingActivity : AppCompatActivity() {
 
     private fun wifiError() {
         val snackBar = Snackbar.make(
-            act,
+            this,
             contextView,
             "Trouble with internet connection",
             Snackbar.LENGTH_INDEFINITE
         )
         snackBar.setAction("Restart") {
-            act.recreate()
+            this.recreate()
         }
         snackBar.show()
     }
@@ -175,6 +187,7 @@ class ScrollingActivity : AppCompatActivity() {
         val baseUrl = "https://finnhub.io/api/v1/stock/"
         val retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         val service =

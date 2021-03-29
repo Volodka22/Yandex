@@ -12,6 +12,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".StocksActivity"
+            android:label="@string/title_activity_stocks"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+        <activity
             android:name=".ScrollingActivity"
             android:label="@string/app_name"
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar">

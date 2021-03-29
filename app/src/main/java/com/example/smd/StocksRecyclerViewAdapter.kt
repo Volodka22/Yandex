@@ -1,6 +1,7 @@
 package com.example.smd
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,6 +16,7 @@ import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.round
+
 
 class StocksRecyclerViewAdapter(
     context: Context
@@ -96,6 +98,14 @@ class StocksRecyclerViewAdapter(
             if (ScrollingActivity.getIsFavourite() && !allStocks[pos].isFavourite) {
                 delete(position)
             }
+        }
+
+        holder.itemView.setOnClickListener {
+            val intent = Intent(sup, StocksActivity::class.java).apply {
+                putExtra("name", stock.name)
+                putExtra("ticker", stock.ticker)
+            }
+            sup.startActivity(intent)
         }
 
     }

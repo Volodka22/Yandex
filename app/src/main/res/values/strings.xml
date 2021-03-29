@@ -97,4 +97,7 @@
     <string name="token">c15osb748v6rh9qkjsqg</string>
     <string name="file_with_favourites">Favorite.txt</string>
     <string name="we_don_t_have_this_logo">We don`t have this logo</string>
+    <string name="title_activity_stocks">StocksActivity</string>
+    <string name="news_image">News image</string>
+    <string name="go_to_link">go to resource</string>
 </resources>
